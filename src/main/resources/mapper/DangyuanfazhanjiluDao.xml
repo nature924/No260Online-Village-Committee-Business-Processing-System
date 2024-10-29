@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dao.DangyuanfazhanjiluDao">
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        a.id as id
+        ,a.yonghu_id as yonghuId
+        ,a.dangyuanfazhanjilu_uuid_number as dangyuanfazhanjiluUuidNumber
+        ,a.dangyuanfazhanjilu_name as dangyuanfazhanjiluName
+        ,a.dangyuanfazhanjilu_file as dangyuanfazhanjiluFile
+        ,a.dangyuanfazhanjilu_video as dangyuanfazhanjiluVideo
+        ,a.dangyuanfazhanjilu_types as dangyuanfazhanjiluTypes
+        ,a.fazhan_time as fazhanTime
+        ,a.dangyuanfazhanjilu_content as dangyuanfazhanjiluContent
+        ,a.insert_time as insertTime
+        ,a.create_time as createTime
+    </sql>
+    <select id="selectListView" parameterType="map" resultType="com.entity.view.DangyuanfazhanjiluView" >
+        SELECT
+        <include refid="Base_Column_List" />
+        <!-- 级联表的字段 -->
+        ,yonghu.yonghu_name as yonghuName
+        ,yonghu.yonghu_phone as yonghuPhone
+        ,yonghu.yonghu_id_number as yonghuIdNumber
+        ,yonghu.yonghu_photo as yonghuPhoto
+        ,yonghu.wenhua_types as wenhuaTypes
+        ,yonghu.zhuangtai_types as zhuangtaiTypes
+        ,yonghu.yonghu_email as yonghuEmail
+
+        FROM dangyuanfazhanjilu  a
+        left JOIN yonghu yonghu ON a.yonghu_id = yonghu.id
+
+        <where>
+            <if test="params.ids != null">
+                and a.id in
+                <foreach item="item" index="index" collection="params.ids" open="(" separator="," close=")">
+                #{item}
+                </foreach>
+            </if>
+            <if test="params.yonghuId != null and params.yonghuId != ''">
+                and (
+                    a.yonghu_id = #{params.yonghuId}
+                )
+            </if>
+            <if test=" params.dangyuanfazhanjiluUuidNumber != '' and params.dangyuanfazhanjiluUuidNumber != null and params.dangyuanfazhanjiluUuidNumber != 'null' ">
+                and a.dangyuanfazhanjilu_uuid_number like CONCAT('%',#{params.dangyuanfazhanjiluUuidNumber},'%')
+            </if>
+            <if test=" params.dangyuanfazhanjiluName != '' and params.dangyuanfazhanjiluName != null and params.dangyuanfazhanjiluName != 'null' ">
+                and a.dangyuanfazhanjilu_name like CONCAT('%',#{params.dangyuanfazhanjiluName},'%')
+            </if>
+            <if test=" params.dangyuanfazhanjiluVideo != '' and params.dangyuanfazhanjiluVideo != null and params.dangyuanfazhanjiluVideo != 'null' ">
+                and a.dangyuanfazhanjilu_video like CONCAT('%',#{params.dangyuanfazhanjiluVideo},'%')
+            </if>
+            <if test="params.dangyuanfazhanjiluTypes != null and params.dangyuanfazhanjiluTypes != ''">
+                and a.dangyuanfazhanjilu_types = #{params.dangyuanfazhanjiluTypes}
+            </if>
+            <if test=" params.fazhanTimeStart != '' and params.fazhanTimeStart != null ">
+                <![CDATA[  and UNIX_TIMESTAMP(a.fazhan_time) >= UNIX_TIMESTAMP(#{params.fazhanTimeStart}) ]]>
+            </if>
+            <if test=" params.fazhanTimeEnd != '' and params.fazhanTimeEnd != null ">
+                <![CDATA[  and UNIX_TIMESTAMP(a.fazhan_time) <= UNIX_TIMESTAMP(#{params.fazhanTimeEnd}) ]]>
+            </if>
+            <if test=" params.dangyuanfazhanjiluContent != '' and params.dangyuanfazhanjiluContent != null and params.dangyuanfazhanjiluContent != 'null' ">
+                and a.dangyuanfazhanjilu_content like CONCAT('%',#{params.dangyuanfazhanjiluContent},'%')
+            </if>
+            <if test=" params.insertTimeStart != '' and params.insertTimeStart != null ">
+                <![CDATA[  and UNIX_TIMESTAMP(a.insert_time) >= UNIX_TIMESTAMP(#{params.insertTimeStart}) ]]>
+            </if>
+            <if test=" params.insertTimeEnd != '' and params.insertTimeEnd != null ">
+                <![CDATA[  and UNIX_TIMESTAMP(a.insert_time) <= UNIX_TIMESTAMP(#{params.insertTimeEnd}) ]]>
+            </if>
+
+                <!-- 判断用户的id不为空 -->
+            <if test=" params.yonghuIdNotNull != '' and params.yonghuIdNotNull != null and params.yonghuIdNotNull != 'null' ">
+                and a.yonghu_id IS NOT NULL
+            </if>
+            <if test=" params.yonghuName != '' and params.yonghuName != null and params.yonghuName != 'null' ">
+                and yonghu.yonghu_name like CONCAT('%',#{params.yonghuName},'%')
+            </if>
+            <if test=" params.yonghuPhone != '' and params.yonghuPhone != null and params.yonghuPhone != 'null' ">
+                and yonghu.yonghu_phone like CONCAT('%',#{params.yonghuPhone},'%')
+            </if>
+            <if test=" params.yonghuIdNumber != '' and params.yonghuIdNumber != null and params.yonghuIdNumber != 'null' ">
+                and yonghu.yonghu_id_number like CONCAT('%',#{params.yonghuIdNumber},'%')
+            </if>
+            <if test="params.wenhuaTypes != null  and params.wenhuaTypes != ''">
+                and yonghu.wenhua_types = #{params.wenhuaTypes}
+            </if>
+
+            <if test="params.zhuangtaiTypes != null  and params.zhuangtaiTypes != ''">
+                and yonghu.zhuangtai_types = #{params.zhuangtaiTypes}
+            </if>
+
+            <if test=" params.yonghuEmail != '' and params.yonghuEmail != null and params.yonghuEmail != 'null' ">
+                and yonghu.yonghu_email like CONCAT('%',#{params.yonghuEmail},'%')
+            </if>
+        </where>
+        order by a.${params.sort} ${params.order}
+    </select>
+
+</mapper>
